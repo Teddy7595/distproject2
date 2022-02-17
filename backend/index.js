@@ -35,15 +35,14 @@ const main = async () =>
         path: '/stream'
     })
 
-    wss.on('connection', async socket => 
-    {
-        socket.send("socket base reenviando confirmacion")
-    });
-
-
     const ws = app.listen(process.env.ENV_PORT, () => 
     {
         console.log(`Escuchando en puerto ${process.env.ENV_PORT}`);
+    });
+    
+    wss.on('connection', async socket => 
+    {
+        socket.send("socket base reenviando confirmacion")
     });
 
     ws.on('upgrade', (request, socket, head) => 
@@ -64,8 +63,6 @@ const main = async () =>
     //basic configuration about what plugin are will used by the backend
     app.use(express.json({}));
     app.use(express.urlencoded({extended: true}));
-    app.use(express.static(__dirname + '/public'));
-
     app.use('/api', _SERVER_ROUTES);
 
 }

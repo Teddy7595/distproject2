@@ -1,5 +1,5 @@
-//data type to describe general server response to client 
-export type _Response =
+//data interface to describe general server response to client 
+export interface _Response 
 {
     OK:      boolean,
     data:    [], 
@@ -8,24 +8,24 @@ export type _Response =
     message: string,   
 }
 
-//data type to describe parameters to find in database
-export type _argsFind = 
+//data interface to describe parameters to find in database
+export interface _argsFind  
 {
     findObject: any;
     populate?: any;
     select?: any;
 }
 
-//data type to describe parameters to update a object in database
-export type _argsUpdate =
+//data interface to describe parameters to update a object in database
+export interface _argsUpdate 
 {
     findObject: any;
     set: any;
     populate?: any;
 }
 
-/** data type to send information between server and client through the socket */
-export type socketPackage =
+/** data interface to send information between server and client through the socket */
+export interface socketPackage 
 {
     _idclient?:     string,        
     _iduser?:       string,        
@@ -36,7 +36,14 @@ export type socketPackage =
     ok?:            boolean
 }
 
-/** index to describe all type of event in server and client connected */
+/**data interface to describe information required to a user can login or register */
+export interface userLog
+{
+    user?: string,
+    pass?: string
+}
+
+/** index to describe all interface of event in server and client connected */
 export enum event_type
 {
 
