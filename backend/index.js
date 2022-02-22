@@ -4,8 +4,9 @@ const env     = require('dotenv').config();
 const socket  = require('ws').Server;
 const app     = express();
 
-const user = require('./controllers/user.controller');
+const _ssn = require('./controllers/session.controller');
 const _srv = require('./controllers/server.controller');
+const _tpc = require('./controllers/topic.controller');
 
 
 //method to init the server 
@@ -15,8 +16,9 @@ const main = async () =>
     //route array
     const _SERVER_ROUTES = 
     [   
-        user,
-        _srv
+        _ssn,
+        _srv,
+        _tpc
     ];
 
     const _CORS_OPTION = 
