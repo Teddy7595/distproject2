@@ -6,8 +6,8 @@ const topicSchema = new schema({
     topic: 
     {
         type: String,
-        default: " ",
-        require: [true, 'You must put in a name to the new topic']
+        require: [true, 'You must put in a name to the new topic'],
+        unique: [true, 'This element already exist!']
     }
 });
 

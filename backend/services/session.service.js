@@ -61,9 +61,8 @@ class UserService
             const args = {'findObject': value, 'select': '-__v'};
             resp = await this._dataService._findOneInDB(this._userModel, args);   
             
-            (resp.status >= 200 && resp.status < 203)? 
-                _loginCluster.add(resp.data[0]?._id.toString()): 
-                false;
+            if(resp.data.length > 0 && !_loginCluster.has(resp.data[0]?._id.toString()))
+                _loginCluster.add(resp.data[0]?._id.toString())
         }
         console.log(_loginCluster);
         return resp;

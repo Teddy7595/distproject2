@@ -4,13 +4,10 @@ const schema   = mongoose.Schema;
 
 const topicUsrSchema = new schema({
     topics: 
-    {
-        type: Array,
-        default: []
-    },
+    [{ type: String, ref: 'Topics', unique: [true, 'This topics already exist'] }],
     userID:
     {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         unique: [true, "The userid must be unique"],
         required: [true, "the userid is required"],
     }
