@@ -9,6 +9,8 @@ const topic         = require('./topics.service');
 class PubsubService
 {
     /** @private */
+    clients;
+    /** @private */
     _emitter;
     /** @private */
     _eventName;
@@ -38,11 +40,33 @@ class PubsubService
             'weight'    : ' '
         };
 
-        this.WatchToSendToSubscribers();
-        this.WatchOnSubscriptions();
-        this.WatchDeSubscriptions();
+        this.WatchToSendToSubscribers(); //broadcast each post when its created by http
+        this.WatchOnSubscriptions(); //see changes in users onsubscriptios
+        this.WatchDeSubscriptions(); //see changes in users desubscriptios
 
-        this.count = 0;
+        /** this id can be an hash number but to practically effects, just use a commom number counter */
+        this.clients = 0;
+    }
+    
+    /**
+     * This function tis to mofidy the stack channels based in any change do it in the database
+     * @param {any} event 
+     */
+    async MofidyChannelsInStack(event)
+    {
+        /**
+             * first i need find the user in the stack sesion
+             * if i find them, rewrite all the channels stackwith the new stack modified from database
+             */
+
+         await CACHESESSIONS.find( (value, index) =>
+         {
+             (value._iduser === event.userID)? 
+                 CACHESESSIONS[index].channels = event.topics : false;
+         });
+
+         console.clear()
+         console.log(CACHESESSIONS);
     }
 
     /**
@@ -52,7 +76,7 @@ class PubsubService
     async WatchOnSubscriptions()
     {
         //cuento me subscribo
-        this._emitter.on(this._eventName[1], (event) => console.log('subscripcion;', ++this.count));
+        this._emitter.on(this._eventName[1], async (event) => await this.MofidyChannelsInStack(event));
     }
 
     /**
@@ -62,7 +86,7 @@ class PubsubService
     async WatchDeSubscriptions()
     {
         //cuando me desubscribo
-        this._emitter.on(this._eventName[2], (event) => console.log('desubscripcion;', ++this.count));
+        this._emitter.on(this._eventName[2], async (event) => await this.MofidyChannelsInStack(event));
     }
 
     /**
@@ -124,7 +148,7 @@ class PubsubService
      * @param {WebSocket} ws 
      * @param {this} next 
      */
-    async areYouConnected(pckg, ws, next = () => {return})
+    async AreYouConnected(pckg, ws, next = () => {return})
     {
 
         if(/* LOGINCLUSTER.has(pckg._iduser) && */ CACHESESSIONS.find(a => a._iduser == pckg._iduser) === undefined)
@@ -134,9 +158,9 @@ class PubsubService
 
             const a = {
                 '_iduser'   : pckg._iduser,
-                '_idclient' : '1',
+                '_idclient' : ++this.clients,
                // 'socket'    : ws,
-                'channels'  : topics?.topics,
+                'channels'  : topics?.topics.map(a => a._id),
                 'idChannelsTable' : topics._id
             };
 
@@ -147,8 +171,7 @@ class PubsubService
             pckg.message = "All fine!";
             pckg.payload = a;
         }
-
-        console.log('Esta o no la session:' ,CACHESESSIONS);
+        console.log(CACHESESSIONS);
         ws.send(JSON.stringify(pckg));
     }
 
@@ -169,7 +192,7 @@ class PubsubService
                 inPkg = JSON.parse(event.toString('utf-8'));
 
                 (inPkg.hasOwnProperty('_iduser') && inPkg.type === 1)? 
-                    this.areYouConnected(inPkg, ws) : rejectOpertion('Corrupt JSON');
+                    this.AreYouConnected(inPkg, ws) : rejectOpertion('Corrupt JSON');
 
             } catch (error) 
             {

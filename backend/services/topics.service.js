@@ -86,7 +86,7 @@ class TopicsService
             'select': '-__v',
             'populate':[{
                 'path': 'topics',
-                'select': 'topic -_id'
+                'select': 'topic _id'
             }]
         }
         /**@type {import('../interfaces')._Response} */
