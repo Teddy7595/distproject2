@@ -59,8 +59,8 @@ class TopicsService
             'findObject': {'userID': usr}, 
             'select': '-__v',
             'populate':[{
-                'path': 'Topics',
-                'select': 'topic'
+                'path': 'topics',
+                'select': 'topic -_id'
             }]
         }
         /**@type {import('../interfaces')._Response} */
@@ -85,8 +85,8 @@ class TopicsService
             'findObject': {'userID': usr}, 
             'select': '-__v',
             'populate':[{
-                'path': 'Topics',
-                'select': 'topic'
+                'path': 'topics',
+                'select': 'topic -_id'
             }]
         }
         /**@type {import('../interfaces')._Response} */
@@ -146,15 +146,21 @@ class TopicsService
             });
 
             resp = await this._dataService._saveDB(data);
-        }
 
-        if(resp.data.length > 0)
+        }else
         {
+            /** @type {Array<string>} */
+            let auxTopics = resp.data[0].topics;
+
+            (!auxTopics.find(value => value === idtopic))? 
+                auxTopics = [idtopic, ...auxTopics] : auxTopics;
+
             /**@type {import('../interfaces')._argsUpdate} */
             const _args ={
                 'findObject':{'userID':user},
-                'set':{$set: {topics: [idtopic, ...resp.data[0]?.topics]}}
+                'set':{$set: {topics: auxTopics}}
             }
+                
 
             resp = await this._dataService._updateOneInDB(this._tpcUsrModel, _args);
             resp.data = await (await this._dataService._findOneInDB(this._tpcUsrModel, _args)).data;
@@ -173,7 +179,7 @@ class TopicsService
         /**@type {import('../interfaces')._argsUpdate} */
         const _args ={
             'findObject': {'_id': id},
-            'set': {'topic': name}
+            'set':{$set: {'topic': name}}
         }
 
         /**@type {import('../interfaces')._Response} */
@@ -198,21 +204,19 @@ class TopicsService
 
         if(resp.data.length > 0 && resp.data[0] != null)
         {
-            /** @type {{'_id':string, topics:Array<string>, userID:string}} */
-            const value = resp.data[0];
+            /** @type {Array<string>} */
+            let value = resp.data[0]?.topics;
 
-            const index = value.topics.indexOf(topic.toString());
-            (value.topics.length === 1)? 
-                value.topics.pop() : 
-                value.topics.slice(index, 0);
+            (value.length <= 1)? value = [] : value = value.filter( a => a !== topic);
 
             /**@type {import('../interfaces')._argsUpdate} */
             const _args ={
                 'findObject':{'userID':user},
-                'set':{$set: {topics: value.topics}}
+                'set':{$set: {topics: value}}
             }
 
             resp = await this._dataService._updateOneInDB(this._tpcUsrModel, _args);
+            resp.data = await (await this._dataService._findOneInDB(this._tpcUsrModel, _args)).data;
         }
 
         return resp;

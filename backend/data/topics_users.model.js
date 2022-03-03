@@ -4,7 +4,7 @@ const schema   = mongoose.Schema;
 
 const topicUsrSchema = new schema({
     topics: 
-    [{ type: String, ref: 'Topics', unique: [true, 'This topics already exist'] }],
+    [{ type: String, ref: 'Topic', default: []}],
     userID:
     {
         type: String,

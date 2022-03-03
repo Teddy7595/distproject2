@@ -61,8 +61,16 @@ class UserService
             const args = {'findObject': value, 'select': '-__v'};
             resp = await this._dataService._findOneInDB(this._userModel, args);   
             
-            if(resp.data.length > 0 && !_loginCluster.has(resp.data[0]?._id.toString()))
-                _loginCluster.add(resp.data[0]?._id.toString())
+            if(resp.data[0] !== null && !_loginCluster.has(resp.data[0]?._id.toString()))
+                _loginCluster.add(resp.data[0]?._id.toString());
+           
+            if(value.pass !== resp.data[0]?.pass.toString())
+            {
+                resp.status = 400;
+                resp.OK = false;
+                resp.data = [];
+                resp.message = "Password or username incorrect"
+            }
         }
         console.log(_loginCluster);
         return resp;

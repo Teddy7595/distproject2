@@ -1,8 +1,10 @@
 const router   = require('express').Router;
 const topics   = router(); 
 
-const _tpcService   = require('../services/topics.service');
-const tpcService    = new _tpcService();
+const _tpcService    = require('../services/topics.service');
+const _pubsubService = require('../services/pubsub.service');
+const tpcService     = new _tpcService();
+const pubsubService  = new _pubsubService();
 
 topics.get('topic/controller', (req, res)=>
 {
@@ -43,7 +45,7 @@ topics.post('/topic/save', async (req, res) =>
 topics.post('/topic/usertopic', async (req, res) => 
 {
     const {user, topic} = req.body
-    const resp = await tpcService.postOneTopicInUser(user, topic);
+    const resp = await pubsubService.OnSubscriptionHandler(user, topic);
 
     res.status(resp.status).json(resp);
 })
@@ -51,14 +53,14 @@ topics.post('/topic/usertopic', async (req, res) =>
 topics.put('/topic/modify/:id', async (req, res)=>
 {
     /**@type {import('../interfaces')._Response} */
-    const resp = await tpcService.getAllTopicInDB();
+    const resp = await tpcService.modifyOneTopicByID(req.params.id, req.body?.name);
     res.status(resp.status).json(resp);
 })
 
 topics.delete('/topic/usertopic', async (req, res) => 
 {
     const {user, topic} = req.body
-    const resp = await tpcService.deleteTopicInUserByUserID(user, topic);
+    const resp = await pubsubService.DeSubscriptionHandler(user, topic);
 
     res.status(resp.status).json(resp);
 })

@@ -43,10 +43,13 @@ export interface userLog
     pass?: string
 }
 
-/** index to describe all interface of event in server and client connected */
-export enum event_type
+/**data interface to describe a socket session inner server */
+export interface socketSession
 {
-
+    _iduser:    string,
+    _idcliente: string,
+    
 }
+
 
 

@@ -7,18 +7,24 @@ const app     = express();
 const _ssn = require('./controllers/session.controller');
 const _srv = require('./controllers/server.controller');
 const _tpc = require('./controllers/topic.controller');
+const _pst = require('./controllers/post.controller');
+
+const pubsub = require('./services/pubsub.service');
+const PubsubService = new pubsub();
 
 
 //method to init the server 
 const main = async () =>
 {
+
     console.clear();
     //route array
     const _SERVER_ROUTES = 
     [   
         _ssn,
         _srv,
-        _tpc
+        _tpc,
+        _pst
     ];
 
     const _CORS_OPTION = 
@@ -44,7 +50,7 @@ const main = async () =>
     
     wss.on('connection', async socket => 
     {
-        socket.send("socket base reenviando confirmacion")
+        await PubsubService.BROKER_HANDLER(socket);
     });
 
     ws.on('upgrade', (request, socket, head) => 
@@ -58,15 +64,17 @@ const main = async () =>
     mongo.connect(`${process.env.MONGOURI}`,{ 
         useNewUrlParser: true,
         useUnifiedTopology: true,
-        useCreateIndex: true
+        useCreateIndex: true,
+        autoCreate: true
     }).then(() => console.log('Database conection stablish!'))
     .catch((e) => console.log(e));
+
+    
     
     //basic configuration about what plugin are will used by the backend
     app.use(express.json({}));
     app.use(express.urlencoded({extended: true}));
     app.use('/api', _SERVER_ROUTES);
-
 }
 
 
