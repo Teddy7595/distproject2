@@ -64,9 +64,6 @@ class PubsubService
              (value._iduser === event.userID)? 
                  CACHESESSIONS[index].channels = event.topics : false;
          });
-
-         console.clear()
-         console.log(CACHESESSIONS);
     }
 
     /**
@@ -95,7 +92,20 @@ class PubsubService
      */    
     async WatchToSendToSubscribers()
     {
-        this._emitter.on(this._eventName[0], (event) => console.log('publicacion;', ++this.count));
+        this._emitter.on(this._eventName[0], async (event) => 
+        {
+            await CACHESESSIONS.forEach( async (value, index) => 
+            {
+                await value.channels.forEach( a => 
+                {
+                    if(event.topic?.toString() == a)
+                    {
+                        const sender = value.socket;
+                        sender.send(JSON.stringify(event));
+                    }
+                });
+            });
+        });
         /** necesito llamar ahora a los procedimientos de socket */
     }
 
@@ -151,7 +161,7 @@ class PubsubService
     async AreYouConnected(pckg, ws, next = () => {return})
     {
 
-        if(/* LOGINCLUSTER.has(pckg._iduser) && */ CACHESESSIONS.find(a => a._iduser == pckg._iduser) === undefined)
+        if(LOGINCLUSTER.has(pckg._iduser) && CACHESESSIONS.find(a => a._iduser == pckg._iduser) === undefined)
         {
 
             const topics = await (await this._topicService.getAllTopicByUsrID(pckg._iduser)).data[0];
@@ -159,9 +169,9 @@ class PubsubService
             const a = {
                 '_iduser'   : pckg._iduser,
                 '_idclient' : ++this.clients,
-               // 'socket'    : ws,
-                'channels'  : topics?.topics.map(a => a._id),
-                'idChannelsTable' : topics._id
+                'socket'    : ws,
+                'channels'  : topics?.topics.map(a => a._id) || undefined,
+                'idChannelsTable' : topics?._id || undefined
             };
 
             CACHESESSIONS.push(a);
@@ -170,8 +180,20 @@ class PubsubService
             pckg.type    = TYPE_EVENTS.login;
             pckg.message = "All fine!";
             pckg.payload = a;
+
+        }else
+        {
+            CACHESESSIONS.find( a => 
+            {
+                (a._iduser == pckg._iduser)? a.socket = ws : false;
+            });
+            
+            pckg.ok = true;
+            pckg.type    = TYPE_EVENTS.login;
+            pckg.message = "Reconnected with new socket serial";
+            pckg.payload = { 'ws': ws };
         }
-        console.log(CACHESESSIONS);
+
         ws.send(JSON.stringify(pckg));
     }
 
@@ -188,7 +210,7 @@ class PubsubService
         {
             try 
             {
-                
+                //incoming socket package
                 inPkg = JSON.parse(event.toString('utf-8'));
 
                 (inPkg.hasOwnProperty('_iduser') && inPkg.type === 1)? 

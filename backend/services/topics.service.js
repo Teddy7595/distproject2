@@ -145,7 +145,7 @@ class TopicsService
                 'userID': user
             });
 
-            resp = await this._dataService._saveDB(data);
+            resp = await this._dataService._saveDB(data).catch( e => console.log(e));
 
         }else
         {
