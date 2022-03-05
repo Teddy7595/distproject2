@@ -34,7 +34,9 @@ class UserService
         if (value.user && value.pass) 
         {      
             let data = new this._userModel(value);
-            resp = await this._dataService._saveDB(data)    
+            resp = await this._dataService._saveDB(data);
+            (resp.status === 201)? 
+                _loginCluster.add(resp.data[0]?._id.toString()) : false;  
         }
 
         return resp;

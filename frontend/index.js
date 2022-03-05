@@ -1,6 +1,13 @@
-const express = require('express')
-const app = express();
+const express = require('express');
+const path = require('path');
+const app  = express();
 
 console.clear();
-app.listen(8081, ()=> console.log('Holandasss'));
+app.listen(8080, ()=> console.log('Holandasss'));
+
+
+
 app.use(express.static(__dirname + '/public'));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname,'/public/login.html')) );
+app.get('/register', (req, res) => res.sendFile(path.join(__dirname,'/public/register.html')) );
+app.get('/grid', (req, res) => res.sendFile(path.join(__dirname,'/public/grid.html')) );

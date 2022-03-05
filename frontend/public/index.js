@@ -1,1 +1,0 @@
-console.log('Pagina index, arrancando...');
