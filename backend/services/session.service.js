@@ -33,10 +33,15 @@ class UserService
 
         if (value.user && value.pass) 
         {      
-            let data = new this._userModel(value);
-            resp = await this._dataService._saveDB(data);
-            (resp.status === 201)? 
-                _loginCluster.add(resp.data[0]?._id.toString()) : false;  
+            try {
+                let data = new this._userModel(value);
+                resp = await this._dataService._saveDB(data);
+                (resp.status === 201)? 
+                    _loginCluster.add(resp.data[0]?._id.toString()) : false;  
+
+            } catch (error) {
+                resp.error = error;
+            }
         }
 
         return resp;
@@ -62,9 +67,6 @@ class UserService
             /**@type {import('../interfaces')._argsFind} */
             const args = {'findObject': value, 'select': '-__v'};
             resp = await this._dataService._findOneInDB(this._userModel, args);   
-            
-            if(resp.data[0] !== null && !_loginCluster.has(resp.data[0]?._id.toString()))
-                _loginCluster.add(resp.data[0]?._id.toString());
            
             if(value.pass !== resp.data[0]?.pass.toString())
             {
@@ -72,6 +74,15 @@ class UserService
                 resp.OK = false;
                 resp.data = [];
                 resp.message = "Password or username incorrect"
+            }
+            
+            if(resp.data[0] !== null && !_loginCluster.has(resp.data[0]?._id.toString()))
+            {    
+                _loginCluster.add(resp.data[0]?._id.toString());
+                resp.data = {
+                    'user': resp.data[0].user,
+                    '_id' : resp.data[0]?._id
+                }
             }
         }
         console.log(_loginCluster);

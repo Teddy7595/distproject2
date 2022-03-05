@@ -1,23 +1,24 @@
 const _USER = { 'user': ' ', 'pass': ' '};
 
-const _REGISTER = 'http://localhost:8081/api/session/register';
+/////////////////////////////////////////////////////login script
+
+const _LOGIN = 'http://localhost:8081/api/session/login';
 const _REDIRECT = 'http://localhost:8080/grid';
 
-/////////////////////////////////////////////////////register script
-const REGBTT = document.getElementById('regBTT');
+const LOGBTT = document.getElementById('logBTT');
 
-const getDataToRegister = () =>
+const getDataToLogin = () =>
 {
     _USER.user = document.getElementById('floatingInput').value;
     _USER.pass = document.getElementById('floatingPassword').value;
 }
 
-REGBTT.addEventListener('click', async (event) => 
+LOGBTT.addEventListener('click', async (event) => 
 {
     event.preventDefault();
-    getDataToRegister();
+    getDataToLogin();
 
-    const user = await fetch(_REGISTER, {
+    await fetch(_LOGIN, {
         method: 'POST',
         body: JSON.stringify(_USER),
         headers: {
@@ -32,5 +33,6 @@ REGBTT.addEventListener('click', async (event) =>
         }
         else{alert(a.error);}
     });
-});
 
+    
+});
