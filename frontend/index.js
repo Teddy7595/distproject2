@@ -3,7 +3,7 @@ const path = require('path');
 const app  = express();
 
 console.clear();
-app.listen(8080, ()=> console.log('Holandasss'));
+app.listen(8080, ()=> console.log('Servicio de frontend activo'));
 
 
 

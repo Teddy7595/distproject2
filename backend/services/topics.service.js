@@ -80,19 +80,22 @@ class TopicsService
      */
     async getAllTopicByUsrID(usr)
     {
-        /**@type {import('../interfaces')._argsFind} */
-        const _args = {
-            'findObject': {'userID': usr}, 
-            'select': '-__v',
-            'populate':[{
-                'path': 'topics',
-                'select': 'topic _id'
-            }]
+        try {
+            /**@type {import('../interfaces')._argsFind} */
+            const _args = {
+                'findObject': {'userID': usr}, 
+                'select': '-__v'
+            }
+            /**@type {import('../interfaces')._Response} */
+            const resp = await this._dataService._findOneInDB(this._tpcUsrModel, _args).catch( e => console.log(e));
+            console.log(resp);
+            return resp;
+        } catch (error) {
+            console.log(erro);
+            
+            return {'status': 500}
         }
-        /**@type {import('../interfaces')._Response} */
-        const resp = await this._dataService._findOneInDB(this._tpcUsrModel, _args);
- 
-        return resp;
+
     }
 
     /**

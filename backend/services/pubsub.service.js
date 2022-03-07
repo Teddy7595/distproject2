@@ -44,6 +44,10 @@ class PubsubService
         this.WatchOnSubscriptions(); //see changes in users onsubscriptios
         this.WatchDeSubscriptions(); //see changes in users desubscriptios
 
+        
+        //setInterval(() => { (CACHESESSIONS.length > 0)? this.PINGPONG() : false;}, 5000); 
+        //every half seconds the server do a pingpong verification
+
         /** this id can be an hash number but to practically effects, just use a commom number counter */
         this.clients = 0;
     }
@@ -55,9 +59,9 @@ class PubsubService
     async MofidyChannelsInStack(event)
     {
         /**
-             * first i need find the user in the stack sesion
-             * if i find them, rewrite all the channels stackwith the new stack modified from database
-             */
+        * first i need find the user in the stack sesion
+        * if i find them, rewrite all the channels stackwith the new stack modified from database
+        */
 
          await CACHESESSIONS.find( (value, index) =>
          {
@@ -96,12 +100,18 @@ class PubsubService
         {
             await CACHESESSIONS.forEach( async (value, index) => 
             {
-                await value.channels.forEach( a => 
+                await value.channels?.forEach( a => 
                 {
                     if(event.topic?.toString() == a)
                     {
                         const sender = value.socket;
-                        sender.send(JSON.stringify(event));
+                        this._socketResponse._idclient  = value._idclient;
+                        this._socketResponse._iduser    = value._iduser;
+                        this._socketResponse.message    = 'Nueva publicacion';
+                        this._socketResponse.payload    = { 'post': event};
+                        this._socketResponse.type       = TYPE_EVENTS.publish;
+
+                        sender.send(JSON.stringify(this._socketResponse));
                     }
                 });
             });
@@ -111,6 +121,7 @@ class PubsubService
 
     /**
      * Function to publis a new post
+     * @public
      * @param {{'topic':string, 'title':string, 'desc':string}} post 
      */
     async PublishANewPost(post)
@@ -124,7 +135,13 @@ class PubsubService
         return resp;
     }
 
-
+    /**
+     * Function dedicated to watch all subscriptions event do it by a user
+     * @public
+     * @param {string} iduser 
+     * @param {string} idtopic 
+     * @returns Promise<_Response>
+     */
     async OnSubscriptionHandler(idsuer, idtopic)
     {
         /** @type {import("../interfaces"._Response)} */
@@ -136,6 +153,13 @@ class PubsubService
         return resp;
     }
 
+    /**
+     * Function dedicated to watch all desubscriptions event do it by a user
+     * @public
+     * @param {string} iduser 
+     * @param {string} idtopic 
+     * @returns Promise<_Response>
+     */
     async DeSubscriptionHandler(iduser, idtopic)
     {
         /** @type {import("../interfaces"._Response)} */
@@ -161,7 +185,7 @@ class PubsubService
     async AreYouConnected(pckg, ws, next = () => {return})
     {
 
-        if(LOGINCLUSTER.has(pckg._iduser) && CACHESESSIONS.find(a => a._iduser == pckg._iduser) === undefined)
+        if(/* LOGINCLUSTER.has(pckg._iduser) && */ CACHESESSIONS.find(a => a._iduser == pckg._iduser) === undefined)
         {
 
             const topics = await (await this._topicService.getAllTopicByUsrID(pckg._iduser)).data[0];
@@ -181,7 +205,9 @@ class PubsubService
             pckg.message = "All fine!";
             pckg.payload = a;
 
-        }else
+        }
+        
+        if(/* LOGINCLUSTER.has(pckg._iduser) && */ CACHESESSIONS.find(a => a._iduser == pckg._iduser) !== undefined)
         {
             CACHESESSIONS.find( a => 
             {
@@ -198,7 +224,52 @@ class PubsubService
     }
 
     /**
+     * Function dedicated to do a pingpong verify 
+     * The system will send a package to verify if its online
+     * if response true, have no problem, but if not
+     * @private
+     */
+    async PINGPONG()
+    {
+        console.clear();
+        console.log('Verificando usuarios conectados: \n', CACHESESSIONS);
+        await CACHESESSIONS.forEach( value => 
+        {
+            this._socketResponse._idclient  = value._idclient;
+            this._socketResponse._iduser    = value._iduser;
+            this._socketResponse.message    = 'pingpong';
+            this._socketResponse.ok         = false;
+            this._socketResponse.type       = TYPE_EVENTS.pingpong;
+            this._socketResponse.payload    = {};
+            this._socketResponse.weight     = Buffer.byteLength(JSON.stringify(this._socketResponse));
+
+            const ping = value.socket;
+            ping.onmessage = (event) => {
+                try 
+                {
+                    this._socketResponse = JSON.parse(value);
+                    (!this._socketResponse.ok)?     
+                        CACHESESSIONS = CACHESESSIONS.filter( a => a._iduser !== value._iduser) : false;
+
+                } catch (error) 
+                {
+                    this._socketResponse._iduser    = value._idclient;
+                    this._socketResponse._idclient  = 'DENIED';
+                    this._socketResponse.message    = 'Corrupt package, cannot be served';
+                    this._socketResponse.ok         = false;
+                    this._socketResponse.payload    = { };
+                    this._socketResponse.type       = TYPE_EVENTS.error;
+
+                }
+            };
+
+            ping.send(JSON.stringify(this._socketResponse));
+        });
+    }
+
+    /**
      * Function main to handle socket connection with a client
+     * @public
      * @param {WebSocket} ws 
      */
     async BROKER_HANDLER(ws)
@@ -210,11 +281,12 @@ class PubsubService
         {
             try 
             {
+                console.log('Incoming Package:', JSON.parse(event.toString('utf-8')));
                 //incoming socket package
                 inPkg = JSON.parse(event.toString('utf-8'));
 
                 (inPkg.hasOwnProperty('_iduser') && inPkg.type === 1)? 
-                    this.AreYouConnected(inPkg, ws) : rejectOpertion('Corrupt JSON');
+                   this.AreYouConnected(inPkg, ws) : rejectOpertion('Corrupt JSON');
 
             } catch (error) 
             {
@@ -230,7 +302,7 @@ class PubsubService
             }
         });
 
-        ws.on('close', (event) => { console.log(event.toString())});
+        ws.on('close', (event) => { console.log( `Socket Cerrado: ${ws}`, event) });
 
         return ws;
     }

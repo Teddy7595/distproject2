@@ -1,5 +1,6 @@
 const _data = require('./data.service');
 const _user = require('../data/user.model');
+const _topc = require('./topics.service');
 const _loginCluster = require('../config').LOGINCLUSTER;
 
 class UserService
@@ -13,6 +14,7 @@ class UserService
     {
         console.log('Servicio de manipulacion de usuarios');
         this._dataService = new _data();    
+        this._topicService = new _topc();
         this._userModel = _user;   
     }
 
@@ -36,8 +38,11 @@ class UserService
             try {
                 let data = new this._userModel(value);
                 resp = await this._dataService._saveDB(data);
-                (resp.status === 201)? 
-                    _loginCluster.add(resp.data[0]?._id.toString()) : false;  
+                if(resp.status === 201)
+                {    
+                    await this._topicService.postOneTopicInUser(resp.data[0]?._id.toString(), 'undefined');
+                    _loginCluster.add(resp.data[0]?._id.toString());
+                }  
 
             } catch (error) {
                 resp.error = error;

@@ -1,6 +1,7 @@
 .container {
     display:grid;
     grid-template-columns: 200px 3fr;
+    grid-template-rows: 50px 1fr 50px;
     grid-template-areas:    "header header" 
                             "sidebar body"
                             "footer footer";
@@ -14,12 +15,25 @@
 .container .sidebar {
     background-color: rgb(90, 87, 87);
     grid-area: sidebar;
+    display: grid;
+    grid-template-rows: 25px;
+    overflow-y: scroll;
 
 }
 
 .container .body {
     background-color: rgb(77, 74, 74);
     grid-area: body;
+    overflow-y: scroll;
+}
+
+.body > ul > li
+{
+    display: grid;
+    grid-template-rows: 15px 60px 10px;
+    height: min-content;
+    padding: 0;
+    margin: 5px 0px;
 }
 
 .container .footer {

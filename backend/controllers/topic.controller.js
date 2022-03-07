@@ -34,6 +34,13 @@ topics.get('/topic/:id', async (req, res)=>
     res.status(resp.status).json(resp);
 })
 
+topics.get('/topic/user/:user',async (req, res) => 
+{
+    /**@type {import('../interfaces')._Response} */
+    const resp = await tpcService.getAllTopicByUsrID(req.params.user);
+    res.status(resp.status).json(resp);
+});
+
 topics.post('/topic/save', async (req, res) => 
 {
     const value = req.body?.name
@@ -42,10 +49,10 @@ topics.post('/topic/save', async (req, res) =>
     res.status(resp.status).json(resp);
 })
 
-topics.post('/topic/usertopic', async (req, res) => 
+topics.post('/topic/usertopic/:user/:topic', async (req, res) => 
 {
-    const {user, topic} = req.body
-    const resp = await pubsubService.OnSubscriptionHandler(user, topic);
+    /**@type {import('../interfaces')._Response} */
+    const resp = await pubsubService.OnSubscriptionHandler(req.params.user, req.params.topic);
 
     res.status(resp.status).json(resp);
 })
@@ -57,10 +64,10 @@ topics.put('/topic/modify/:id', async (req, res)=>
     res.status(resp.status).json(resp);
 })
 
-topics.delete('/topic/usertopic', async (req, res) => 
+topics.delete('/topic/usertopic/:user/:topic', async (req, res) => 
 {
-    const {user, topic} = req.body
-    const resp = await pubsubService.DeSubscriptionHandler(user, topic);
+    /**@type {import('../interfaces')._Response} */
+    const resp = await pubsubService.DeSubscriptionHandler(req.params.user, req.params.topic);
 
     res.status(resp.status).json(resp);
 })

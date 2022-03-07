@@ -25,7 +25,7 @@ REGBTT.addEventListener('click', async (event) =>
         }
     }).then( data => data.json()).then( a => 
     {
-        if(a.status === 200)
+        if(a.status === 201)
         {
             localStorage.setItem('user', JSON.stringify(a?.data[0] ?? {}));
             window.location.href = _REDIRECT;

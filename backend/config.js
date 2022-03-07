@@ -9,12 +9,13 @@ const CACHESESSIONS = new Array();
 
 const TYPE_EVENTS =
 {
-    'error'    : 0,
-    'login'    : 1,
-    'logout'   : 2,
-    'publish'  : 3,
-    'response' : 4,
-    'subscript': 5
+    'error'         : 0,
+    'login'         : 1,
+    'logout'        : 2,
+    'publish'       : 3,
+    'response'      : 4,
+    'pingpong'      : 5,
+    'subscript'     : 6
 }
 
 module.exports = {LOGINCLUSTER, CACHESESSIONS, TYPE_EVENTS}
